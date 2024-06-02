@@ -3,20 +3,77 @@ import Header from "./Header";
 import { useState } from "react";
 import { useRef } from "react";
 import { checkValidData } from "../utils/Validate";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  getAuth,
+  updateProfile,
+} from "firebase/auth";
+// import firebase from "firebase/compat/app";
+import { auth } from "../utils/firebase";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [isSignInform, setIsSignInForm] = useState(true);
 
-  const [errorMessage,seterrorMessage] = useState(null);
+  const [errorMessage, seterrorMessage] = useState(null);
 
+  const navigate = useNavigate();
+  const name = useRef(null);
   const email = useRef(null);
   const password = useRef(null);
 
   const handleButtonClick = () => {
-  
-
     const message = checkValidData(email.current.value, password.current.value);
     seterrorMessage(message);
+
+    if (message) return;
+
+    if (!isSignInform) {
+      const auth = getAuth();
+      createUserWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          const user = userCredential.user;
+          updateProfile(user, {
+            displayName: name.current.value,
+            photoURL: "https://example.com/jane-q-user/profile.jpg",
+          })
+            .then(() => {
+              navigate("/Browse");
+
+              // ...
+            })
+            .catch((error) => {
+              seterrorMessage(error.message)
+            });
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          seterrorMessage(errorCode + "-" + errorMessage);
+        });
+    } else {
+      const auth = getAuth();
+      signInWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          const user = userCredential.user;
+          console.log(user);
+          navigate("/Browse");
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          seterrorMessage(errorCode, errorMessage);
+        });
+    }
   };
 
   const toggleSignInForm = () => {
@@ -25,8 +82,11 @@ const Login = () => {
   return (
     <div>
       <Header />
-      <div className=" absolute">
-        <img src="https://assets.nflxext.com/ffe/siteui/vlv3/fc164b4b-f085-44ee-bb7f-ec7df8539eff/d23a1608-7d90-4da1-93d6-bae2fe60a69b/IN-en-20230814-popsignuptwoweeks-perspective_alpha_website_large.jpg" alt="no"></img>
+      <div className=" absolute ">
+        <img
+          src="https://assets.nflxext.com/ffe/siteui/vlv3/fc164b4b-f085-44ee-bb7f-ec7df8539eff/d23a1608-7d90-4da1-93d6-bae2fe60a69b/IN-en-20230814-popsignuptwoweeks-perspective_alpha_website_large.jpg"
+          alt="no"
+        ></img>
       </div>
       <form
         onSubmit={(e) => {
@@ -40,6 +100,7 @@ const Login = () => {
 
         {!isSignInform && (
           <input
+            ref={name}
             type="text"
             placeholder="Enter your full name"
             className=" p-4 my-3  bg-white bg-opacity-15 rounded-md w-full"
@@ -57,7 +118,7 @@ const Login = () => {
           placeholder="Password"
           className=" p-4 bg-white bg-opacity-15 my-3 rounded-md w-full"
         ></input>
-        <p className=" text-red-700 font-bold" >{errorMessage}</p>
+        <p className=" text-red-700 font-bold">{errorMessage}</p>
         <button
           onClick={handleButtonClick}
           className=" p-2 my-2 bg-red-700 w-full rounded-md text-center font-bold "
