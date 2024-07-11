@@ -9,19 +9,17 @@ import {
   getAuth,
   updateProfile,
 } from "firebase/auth";
-// import firebase from "firebase/compat/app";
-import { auth } from "../utils/firebase";
-import { useNavigate } from "react-router-dom";
+
 
 const Login = () => {
   const [isSignInform, setIsSignInForm] = useState(true);
 
   const [errorMessage, seterrorMessage] = useState(null);
 
-  const navigate = useNavigate();
   const name = useRef(null);
   const email = useRef(null);
   const password = useRef(null);
+
 
   const handleButtonClick = () => {
     const message = checkValidData(email.current.value, password.current.value);
@@ -43,9 +41,7 @@ const Login = () => {
             photoURL: "https://example.com/jane-q-user/profile.jpg",
           })
             .then(() => {
-              navigate("/Browse");
-
-              // ...
+              
             })
             .catch((error) => {
               seterrorMessage(error.message)
@@ -65,13 +61,15 @@ const Login = () => {
       )
         .then((userCredential) => {
           const user = userCredential.user;
-          console.log(user);
-          navigate("/Browse");
+         
+
         })
         .catch((error) => {
           const errorCode = error.code;
           const errorMessage = error.message;
-          seterrorMessage(errorCode, errorMessage);
+          seterrorMessage(errorCode + "-" + errorMessage);
+        
+
         });
     }
   };
@@ -92,7 +90,7 @@ const Login = () => {
         onSubmit={(e) => {
           e.preventDefault();
         }}
-        className=" absolute w-3/12 my-32  mx-auto right-0 left-0 p-12  bg-black bg-opacity-85 rounded-lg rounded-md text-white"
+        className=" absolute w-3/12 my-32  mx-auto right-0 left-0 p-12  bg-black bg-opacity-85 rounded-lg  text-white"
       >
         <h1 className=" font-bold text-3xl py-5">
           {isSignInform ? " Sign In" : "Sign Up"}
